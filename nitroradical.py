@@ -35,15 +35,6 @@ def get_page_as_element_tree(url):
     return lxml.html.fromstring(html)
 
 
-def is_last_page(etree):
-    """ Return True if current page is final index page, otherwise False. """
-    next_disabled = etree.xpath('//span[@class="next disabled txt"]')
-    next_present = etree.xpath('//span[@class="next txt"]')
-    if next_disabled or not next_present:
-        return True
-    else:
-        return False
-
 def is_last_radio_page(etree):
     """ Return True if current page is final index page, otherwise False. """
     next_disabled = etree.xpath('//li[@class="pagination--disabled"]')
@@ -54,25 +45,22 @@ def is_last_radio_page(etree):
     else:
         return False
 
-
-def extract_programme_data(programme):
+def extract_radio_programme_data(programme):
     """ Take programme etree; return dict containing programmed data. """
     # TODO: audio described, HD, signed flags
+    logging.info("extract_radio_programme_data")
     programme_data = OrderedDict()
-    programme_data['title'] = programme.xpath(
-        './/div[@class="title top-title"]')[0].text.strip()
+
+    programme_data['title'] = programme.xpath( './/span[@property="name"]')[0].text.strip()
     try:
-        programme_data['subtitle'] = programme.xpath(
-            './/div[@class="subtitle"]')[0].text.strip()
+        programme_data['subtitle'] = "toedeloe"
+        # programme.xpath('.//div[@class="subtitle"]')[0].text.strip()
     except IndexError:
         pass
-    programme_data['synopsis'] = programme.xpath(
-        './/p[@class="synopsis"]')[0].text.strip()
-    programme_data['channel'] = programme.xpath(
-        './/span[@class="small"]')[0].text.strip()
+    programme_data['synopsis'] = programme.xpath( './/p[@class="synopsis"]')[0].text.strip()
+    programme_data['channel'] = programme.xpath(  './/span[@class="small"]')[0].text.strip()
     try:
-        programme_data['release'] = programme.xpath(
-            './/span[@class="release"]')[0].text.strip()
+        programme_data['release'] = programme.xpath( './/span[@class="release"]')[0].text.strip()
     except IndexError:
         pass
     href, = programme.xpath('./a/@href')
@@ -80,39 +68,15 @@ def extract_programme_data(programme):
     programme_data['pid'] = href.split('/')[3]
     return programme_data
 
-
-def parse_items_from_page(etree):
-    """ Parse programme data from index page; return list of dicts of data. """
-    programmes = etree.xpath('//li[@class="list-item programme"]')
-    programmes_data = [extract_programme_data(programme)
-                       for programme in programmes]
-    return programmes_data
-
 def parse_radio_items_from_page(etree):
     """ Parse programme data from index page; return list of dicts of data. """
-    programmes = etree.xpath('//li[@class="list-item programme"]')
-    programmes_data = [extract_programme_data(programme)
+    logging.info("parse_radio_items_from_page")
+
+    programmes = etree.xpath('.//div[contains(@class, " programme--radio ")]')
+    programmes_data = [extract_radio_programme_data(programme)
                        for programme in programmes]
     return programmes_data
 
-
-def iterate_through_index(category):
-    """ Iterate over index pages; return list of programme data dicts. """
-    last_page = False
-    page_number = 0
-    items = []
-
-    while not last_page:
-        page_number += 1
-        url = ("http://www.bbc.co.uk/iplayer/categories/{}"
-               "/all?sort=atoz&page={}".format(category, page_number))
-        logging.info("Downloading page {}".format(page_number))
-        etree = get_page_as_element_tree(url)
-        parse_radio_items_from_page(etree)
-        items.append(parse_items_from_page(etree))
-        last_page = is_last_page(etree)
-
-    return items
 
 def radio_iterate_through_index(category):
     """ Iterate over Radio index pages; return list of programme data dicts. """
@@ -122,19 +86,16 @@ def radio_iterate_through_index(category):
 
     while not last_page:
         page_number += 1
-        url = ("http://www.bbc.co.uk/radio/programmes/genres/{}/player".format(category))
+        url = ("http://www.bbc.co.uk/radio/programmes/genres/{}/player/episodes".format(category))
         if page_number > 1 :
             url += ("?page={}".format(page_number))
 
         logging.info("Downloading page {}".format(page_number))
         etree = get_page_as_element_tree(url)
-        parse_items_from_page(etree)
-        items.append(parse_items_from_page(etree))
+        items.append(parse_radio_items_from_page(etree))
         last_page = is_last_radio_page(etree)
 
     return items
-
-
 
 def main():
     """ Scrape BBC iPlayer web frontend category; create JSON feed. """

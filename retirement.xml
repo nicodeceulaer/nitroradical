@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:media="http://search.yahoo.com/mrss/" xml:lang="en-GB">
+  <title>BBC iPlayer</title>
+  <updated>2014-10-29T13:30:00Z</updated>
+  <id>tag:feeds.bbc.co.uk,2008:/iplayer/feed</id>
+  <author>
+    <name>BBC</name>
+    <uri>http://www.bbc.co.uk</uri>
+  </author>
+  <entry>
+    <title type="text">BBC iPlayer Feeds</title>
+    <id>tag:feeds.bbc.co.uk,2008:iplayer:feeds</id>
+    <updated>2014-10-29T13:30:00Z</updated>
+    <content type="html">
+      &lt;p&gt;
+        &lt;a href=&quot;http://iplayerhelp.external.bbc.co.uk/tv/feeds&quot;&gt;
+          &lt;img src=&quot;http://ichef.bbci.co.uk/images/ic/150x84/p0193z5r.jpg&quot; alt=&quot;BBC iPlayer Feeds&quot; /&gt;
+        &lt;/a&gt;
+      &lt;/p&gt;
+      &lt;p&gt;
+        BBC iPlayer feeds are no longer available.  Nitro is the BBC's new programme metadata API.  You can find out more about this here: &lt;a href=&quot;http://iplayerhelp.external.bbc.co.uk/tv/feeds&quot;&gt;BBC iPlayer Feeds&lt;/a&gt;
+      &lt;/p&gt;
+    </content>
+    <link rel="alternate" href="" type="text/html" title="BBC iPlayer Feeds">
+      <media:content>
+        <media:thumbnail url="http://ichef.bbci.co.uk/images/ic/150x84/p0193z5r.jpg" width="150" height="84" />
+      </media:content>
+    </link>
+  </entry>
+</feed>
