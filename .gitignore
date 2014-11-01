@@ -1,2 +1,3 @@
 *.pyc
 *.sqlite
+debug.log

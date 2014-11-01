@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+        #!/usr/bin/env python
 # encoding: utf-8
 
 # Copyright 2014 Steven Maude
@@ -44,6 +44,16 @@ def is_last_page(etree):
     else:
         return False
 
+def is_last_radio_page(etree):
+    """ Return True if current page is final index page, otherwise False. """
+    next_disabled = etree.xpath('//li[@class="pagination--disabled"]')
+    next_present = etree.xpath('//li[@class="pagination__next"]')
+
+    if next_disabled or not next_present:
+        return True
+    else:
+        return False
+
 
 def extract_programme_data(programme):
     """ Take programme etree; return dict containing programmed data. """
@@ -78,6 +88,13 @@ def parse_items_from_page(etree):
                        for programme in programmes]
     return programmes_data
 
+def parse_radio_items_from_page(etree):
+    """ Parse programme data from index page; return list of dicts of data. """
+    programmes = etree.xpath('//li[@class="list-item programme"]')
+    programmes_data = [extract_programme_data(programme)
+                       for programme in programmes]
+    return programmes_data
+
 
 def iterate_through_index(category):
     """ Iterate over index pages; return list of programme data dicts. """
@@ -91,16 +108,43 @@ def iterate_through_index(category):
                "/all?sort=atoz&page={}".format(category, page_number))
         logging.info("Downloading page {}".format(page_number))
         etree = get_page_as_element_tree(url)
-        parse_items_from_page(etree)
+        parse_radio_items_from_page(etree)
         items.append(parse_items_from_page(etree))
         last_page = is_last_page(etree)
 
     return items
 
+def radio_iterate_through_index(category):
+    """ Iterate over Radio index pages; return list of programme data dicts. """
+    last_page = False
+    page_number = 0
+    items = []
+
+    while not last_page:
+        page_number += 1
+        url = ("http://www.bbc.co.uk/radio/programmes/genres/{}/player".format(category))
+        if page_number > 1 :
+            url += ("?page={}".format(page_number))
+
+        logging.info("Downloading page {}".format(page_number))
+        etree = get_page_as_element_tree(url)
+        parse_items_from_page(etree)
+        items.append(parse_items_from_page(etree))
+        last_page = is_last_radio_page(etree)
+
+    return items
+
+
 
 def main():
     """ Scrape BBC iPlayer web frontend category; create JSON feed. """
     logging.basicConfig(level=logging.INFO)
+
+    #logging.basicConfig(level=logging.DEBUG,
+    #                format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+    #                datefmt='%m-%d %H:%M',
+    #                filename='debug.log',
+    #                filemode='w')
     dshelpers.install_cache(expire_after=30*60)
 
     allowed_categories = ['arts', 'cbbc', 'cbeebies', 'comedy',
@@ -111,7 +155,8 @@ def main():
                           'scotland', 'wales']
 
     if len(sys.argv) == 2 and sys.argv[1] in allowed_categories:
-        print(json.dumps(iterate_through_index(sys.argv[1]), indent=4))
+        # print(json.dumps(iterate_through_index(sys.argv[1]), indent=4))
+        print(json.dumps(radio_iterate_through_index(sys.argv[1]), indent=4))
     else:
         print("Usage: nitroradical.py <category name>")
         print("Allowed categories:")
