@@ -51,21 +51,41 @@ def extract_radio_programme_data(programme):
     logging.info("extract_radio_programme_data")
     programme_data = OrderedDict()
 
-    programme_data['title'] = programme.xpath( './/span[@property="name"]')[0].text.strip()
+    programme_data['title'] = programme.xpath( './/span[@class="programme__title "]//span[@property="name"]')[0].text.strip()
     try:
-        programme_data['subtitle'] = "toedeloe"
-        # programme.xpath('.//div[@class="subtitle"]')[0].text.strip()
+        episodes =  programme.xpath( './/span[@class="programme__subtitle centi"]//span[@property="name"]')
+        logging.info( "episodes has " + str(len(episodes)) + " elements")
+        programme_data['episode'] = '-'.join([  episode.text.strip() for episode in episodes])
     except IndexError:
+        programme_data['episode'] = '?'
         pass
-    programme_data['synopsis'] = programme.xpath( './/p[@class="synopsis"]')[0].text.strip()
-    programme_data['channel'] = programme.xpath(  './/span[@class="small"]')[0].text.strip()
+
     try:
-        programme_data['release'] = programme.xpath( './/span[@class="release"]')[0].text.strip()
+        programme_data['desc'] = programme.xpath( './/p[@class="programme__synopsis text--subtle centi"]//span[@property="description"]')[0].text.strip()
     except IndexError:
+        programme_data['desc'] = "?"
         pass
-    href, = programme.xpath('./a/@href')
+
+ #   try:
+ #        programme.xpath('.//div[@class="subtitle"]')[0].text.strip()
+ #   except IndexError:
+ #       pass
+
+#    programme_data['synopsis'] = programme.xpath( './/p[@class="synopsis"]')[0].text.strip()
+#    programme_data['channel'] = programme.xpath(  './/span[@class="small"]')[0].text.strip()
+#    try:
+#        programme_data['release'] = programme.xpath( './/span[@class="release"]')[0].text.strip()
+#    except IndexError:
+#        pass
+    href, = programme.xpath('.//a[@class="block-link__overlay-link"]/@href')
     programme_data['url'] = ('http://www.bbc.co.uk' + href)
-    programme_data['pid'] = href.split('/')[3]
+    programme_data['pid'] = href.split('/')[2]
+
+    logging.info("  title:    " + programme_data['title'])
+    logging.info("  episode:  " + programme_data['episode'])
+    logging.info("  desc:     " + programme_data['desc'])
+    logging.info("  pid:      " + programme_data['pid'] )
+
     return programme_data
 
 def parse_radio_items_from_page(etree):
@@ -108,12 +128,8 @@ def main():
     #                filemode='w')
     dshelpers.install_cache(expire_after=30*60)
 
-    allowed_categories = ['arts', 'cbbc', 'cbeebies', 'comedy',
-                          'documentaries', 'drama-and-soaps', 'entertainment',
-                          'films', 'food', 'history', 'lifestyle', 'music',
-                          'news', 'science-and-nature', 'sport',
-                          'audio-described', 'signed', 'northern-ireland',
-                          'scotland', 'wales']
+    allowed_categories = [ 'comedy', 'drama', 'entertainment',
+                          'scienceandnature']
 
     if len(sys.argv) == 2 and sys.argv[1] in allowed_categories:
         # print(json.dumps(iterate_through_index(sys.argv[1]), indent=4))
